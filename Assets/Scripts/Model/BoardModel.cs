@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardModel
 {
+
     public enum BoardState
     {
         None,
@@ -10,6 +12,10 @@ public class BoardModel
         Player2Won,
         Draw
     }
+
+    // <row, column>
+    public event Action<int, int> OnCellChanged; 
+
     public BoardState State { get; protected set; }
     public int Rows { get; protected set; } = 3;
     public int Columns { get; protected set; } = 3;
@@ -26,175 +32,51 @@ public class BoardModel
                 Cells[row, col] = new BoardCellModel();
             }
         }
-
     }
 
     public bool TrySetPlayer(int row, int col, int playerId)
     {
-        if (row > Rows || col > Columns)
+        if (row < 0 || row >= Rows || col <0 || col >= Columns)
         {
             return false;
         }
 
-        if (!Cells[row,col].IsEmpty)
+        bool success = Cells[row, col].SetPlayer(playerId);
+        if (success)
         {
-            return false;
+            OnCellChanged?.Invoke(row, col);
         }
 
-        Cells[row,col].SetPlayer(playerId);
-        return true;
+        return success;
     }
 
     public BoardState CheckBoardState(int player1Id, int player2Id)
     {
-        List<BoardCellModel> cells = new();
-
-        // 1. Sve sa strane
-        if (!Cells[0,0].IsEmpty)
+        for (int row = 0; row < Rows; row++)
         {
-
-            if (!Cells[0,1].IsEmpty && !Cells[0, 2].IsEmpty)
+            int winnerId = CheckLine(Cells[row, 0], Cells[row, 1], Cells[row, 2]);
+            if (winnerId != -1)
             {
-                cells.Clear();
-                cells.Add(Cells[0, 0]);
-                cells.Add(Cells[0, 1]);
-                cells.Add(Cells[0, 2]);
-
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-
-            if (!Cells[1, 0].IsEmpty && !Cells[2, 0].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[0, 0]);
-                cells.Add(Cells[1, 0]);
-                cells.Add(Cells[2, 0]);
-
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-
-        }
-
-        if (!Cells[2, 2].IsEmpty)
-        {
-            if (!Cells[2, 0].IsEmpty && !Cells[2,1].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[2, 0]);
-                cells.Add(Cells[2, 1]);
-                cells.Add(Cells[2, 2]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-
-            if (!Cells[0, 2].IsEmpty && !Cells[1, 2].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[0, 2]);
-                cells.Add(Cells[1, 2]);
-                cells.Add(Cells[2, 2]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
+                return winnerId == player1Id ? BoardState.Player1Won : BoardState.Player2Won;
             }
         }
-
-        // 2. centar vertikala i horizontala
-        // 3. dijagonale
-        if (!Cells[1,1].IsEmpty)
+        for (int col = 0; col < Columns; col++)
         {
-            // Centralna Vertikala
-            if (!Cells[0, 1].IsEmpty && !Cells[2, 1].IsEmpty)
+            int winnerId = CheckLine(Cells[0, col], Cells[1, col], Cells[2, col]);
+            if (winnerId != -1)
             {
-                cells.Clear();
-                cells.Add(Cells[0, 1]);
-                cells.Add(Cells[1, 1]);
-                cells.Add(Cells[2, 1]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-
-            // Centralna Horizontala
-            if (!Cells[1, 0].IsEmpty && !Cells[1, 2].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[1, 0]);
-                cells.Add(Cells[1, 1]);
-                cells.Add(Cells[1, 2]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-
-            // Dijagonala od gornjeg levog coska
-            if (!Cells[0, 0].IsEmpty && !Cells[2, 2].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[0, 0]);
-                cells.Add(Cells[1, 1]);
-                cells.Add(Cells[2, 2]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
-            }
-            // Dijagonala od gornjeg desnog coska
-            if (!Cells[0, 2].IsEmpty && !Cells[2, 0].IsEmpty)
-            {
-                cells.Clear();
-                cells.Add(Cells[0, 2]);
-                cells.Add(Cells[1, 1]);
-                cells.Add(Cells[2, 0]);
-                if (HasPlayerWon(cells, player1Id))
-                {
-                    return BoardState.Player1Won;
-                }
-                if (HasPlayerWon(cells, player2Id))
-                {
-                    return BoardState.Player2Won;
-                }
+                return winnerId == player1Id ? BoardState.Player1Won : BoardState.Player2Won;
             }
         }
+    
+        int diag1Winner = CheckLine(Cells[0, 0], Cells[1, 1], Cells[2, 2]);
+        if (diag1Winner != -1)
+            return diag1Winner == player1Id ? BoardState.Player1Won : BoardState.Player2Won;
+
+
+        int diag2Winner = CheckLine(Cells[0, 2], Cells[1, 1], Cells[2, 0]);
+        if (diag2Winner != -1)
+            return diag2Winner == player1Id ? BoardState.Player1Won : BoardState.Player2Won;
 
         if (IsBoardFull())
         {
@@ -220,21 +102,18 @@ public class BoardModel
         return true;
     }
 
-    private bool HasPlayerWon(List<BoardCellModel> cells, int playerId)
+    private int CheckLine(BoardCellModel cell1, BoardCellModel cell2, BoardCellModel cell3)
     {
-        for (int i = 0; i < cells.Count; i++) 
+        if (cell1.IsEmpty || cell2.IsEmpty || cell3.IsEmpty)
         {
-            if (cells[i].IsEmpty)
-            {
-                return false;
-            }
-
-            if (cells[i].PlayerId != playerId)
-            {
-                return false;
-            }
+            return -1;
         }
 
-        return true;
+        if (cell1.PlayerId == cell2.PlayerId && cell2.PlayerId == cell3.PlayerId)
+        {
+            return cell1.PlayerId;
+        }
+
+        return -1;
     }
 }

@@ -8,13 +8,16 @@ public class BoardCellModel
 
     public int PlayerId { get; protected set; } = DefaultPlayerId;
 
-    public BoardCellModel(int playerId = DefaultPlayerId)
+    public BoardCellModel()
     {
-        SetPlayer(playerId);
     }
 
-    public void SetPlayer(int playerId)
+    public bool SetPlayer(int playerId)
     {
+        if (!IsEmpty) return false;
+        if (playerId < 0) return false;
+        
         PlayerId = playerId;
+        return true;
     }
 }
