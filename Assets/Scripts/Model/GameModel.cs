@@ -16,14 +16,18 @@ public class GameModel
     public int RoundTime { get; protected set; }
     public int RemainingTime { get; protected set; }
     public int Player1Id { get; protected set; }
+    public string Player1Name { get; protected set; }
     public int Player2Id { get; protected set; }
+    public string Player2Name { get; protected set; }
     public int CurrentPlayerId { get; protected set; }
     public BoardModel.BoardState CurrentBoardState { get; protected set; }
 
-    public GameModel(int player1Id, int player2Id, int time = DefaultTime)
+    public GameModel(int player1Id, int player2Id, string player1Name, string player2Name, int time = DefaultTime)
     {
         Player1Id = player1Id;
+        Player1Name = player1Name;
         Player2Id = player2Id;
+        Player2Name = player2Name;
         CurrentPlayerId = Player1Id;
         RoundTime = time;
         RemainingTime = time;
@@ -31,6 +35,7 @@ public class GameModel
         Board = new BoardModel();
         CurrentBoardState = BoardModel.BoardState.None;
     }
+
 
     public void SwitchPlayer()
     {
@@ -98,12 +103,17 @@ public class GameModel
         OnPlayerSwitched?.Invoke();
     }
 
+    public string GetCurrentPlayerName()
+    {
+        return CurrentPlayerId == Player1Id ? Player1Name : Player2Name;
+    }
+
+
     public string GetPlayerSymbol(int playerId)
     {
-        if (playerId == Player1Id) return "X";
-        if (playerId == Player2Id) return "0";
+        if (Player1Id == playerId) return "X";
+        if (Player2Id == playerId) return "O";
 
         return string.Empty;
     }
-
 }

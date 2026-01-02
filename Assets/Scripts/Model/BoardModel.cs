@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class BoardModel
 {
-
     public enum BoardState
     {
         None,

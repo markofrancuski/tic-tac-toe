@@ -8,7 +8,6 @@ public class TestBoard : MonoBehaviour
     {
         int player1Id = 10;
         int player2Id = 20;
-        GameModel gameModel = new GameModel(player1Id, player2Id);
         Test1(player1Id, player2Id);
         Test2(player1Id, player2Id);
     }
