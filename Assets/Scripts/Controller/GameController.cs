@@ -49,7 +49,6 @@ public class GameController : MonoBehaviour
         GameModel.OnGameEnded += HandleGameEnded;
 
         boardModel.OnCellChanged += HandleOnCellChanged;
-
     }
 
     private void HandleSwitchPlayer()
